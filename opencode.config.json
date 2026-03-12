@@ -1,0 +1,4 @@
+{
+  "_comment": "执行bun run --cwd packages/desktop dev时需要配置此项，避免卡住。false=跳过 baseline(更适合离线/避免下载)，true=编译 baseline(兼容不支持 AVX2 的老 x64 CPU)。",
+  "baseline": false
+}

@@ -11,6 +11,9 @@ export const UPDATER_ENABLED = window.__OPENCODE__?.updaterEnabled ?? false
 export async function runUpdater({ alertOnFail }: { alertOnFail: boolean }) {
   await initI18n()
 
+  const tauri = () => (window as unknown as { __TAURI__?: unknown }).__TAURI__
+  if (!tauri()) return
+
   let update
   try {
     update = await check()
@@ -39,7 +42,11 @@ export async function runUpdater({ alertOnFail }: { alertOnFail: boolean }) {
   if (!shouldUpdate) return
 
   try {
-    if (ostype() === "windows") await commands.killSidecar()
+    let os: ReturnType<typeof ostype> | undefined
+    try {
+      os = ostype()
+    } catch {}
+    if (os === "windows") await commands.killSidecar()
     await update.install()
   } catch {
     await message(t("desktop.updater.installFailed.message"), { title: t("desktop.updater.installFailed.title") })

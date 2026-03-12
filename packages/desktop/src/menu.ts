@@ -9,7 +9,16 @@ import { initI18n, t } from "./i18n"
 import { commands } from "./bindings"
 
 export async function createMenu(trigger: (id: string) => void) {
-  if (ostype() !== "macos") return
+  const tauri = () => (window as unknown as { __TAURI__?: unknown }).__TAURI__
+  if (!tauri()) return
+
+  let os: ReturnType<typeof ostype> | undefined
+  try {
+    os = ostype()
+  } catch {
+    return
+  }
+  if (os !== "macos") return
 
   await initI18n()
 

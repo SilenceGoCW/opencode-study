@@ -1,8 +1,15 @@
 import { $ } from "bun"
+import path from "path"
 
 import { copyBinaryToSidecarFolder, getCurrentSidecar, windowsify } from "./utils"
 
 async function main() {
+  const root = path.resolve(import.meta.dir, "../../..")
+  const cfg = await Bun.file(path.join(root, "opencode.config.json"))
+    .text()
+    .then((txt) => (txt ? JSON.parse(txt) : {}))
+    .catch(() => ({}))
+
   const target = Bun.env.TAURI_ENV_TARGET_TRIPLE
   const sidecar = getCurrentSidecar(target)
   const name = sidecar.ocBinary
@@ -12,6 +19,14 @@ async function main() {
       ? $`cd ../opencode && bun run build --single --baseline`
       : $`cd ../opencode && bun run build --single`
     return await cmd.nothrow()
+  }
+
+  if (cfg.baseline === false && name.includes("-baseline")) {
+    const alt = name.replace("-baseline", "")
+    const res = await run(false)
+    if (res.exitCode !== 0) throw new Error(res.stderr.toString() || res.stdout.toString())
+    await copyBinaryToSidecarFolder(windowsify(`../opencode/dist/${alt}/bin/opencode`), target)
+    return
   }
 
   if (!name.includes("-baseline")) {

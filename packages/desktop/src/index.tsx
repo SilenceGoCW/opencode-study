@@ -33,6 +33,8 @@ import { Channel } from "@tauri-apps/api/core"
 import { commands, ServerReadyData, type InitStep } from "./bindings"
 import { createMenu } from "./menu"
 
+const tauri = () => (window as unknown as { __TAURI__?: unknown }).__TAURI__
+
 const root = document.getElementById("root")
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   throw new Error(t("error.dev.rootNotFound"))
@@ -60,8 +62,17 @@ const listenForDeepLinks = async () => {
 
 const createPlatform = (): Platform => {
   const os = (() => {
-    const type = ostype()
-    if (type === "macos" || type === "windows" || type === "linux") return type
+    if (!tauri()) {
+      if (navigator.userAgent.includes("Mac")) return "macos"
+      if (navigator.userAgent.includes("Windows")) return "windows"
+      if (navigator.userAgent.includes("Linux")) return "linux"
+      return undefined
+    }
+
+    try {
+      const type = ostype()
+      if (type === "macos" || type === "windows" || type === "linux") return type
+    } catch {}
     return undefined
   })()
 
@@ -294,7 +305,7 @@ const createPlatform = (): Platform => {
 
     update: async () => {
       if (!UPDATER_ENABLED || !update) return
-      if (ostype() === "windows") await commands.killSidecar().catch(() => undefined)
+      if (os === "windows") await commands.killSidecar().catch(() => undefined)
       await update.install().catch(() => undefined)
     },
 
@@ -404,12 +415,26 @@ const createPlatform = (): Platform => {
 }
 
 let menuTrigger = null as null | ((id: string) => void)
-createMenu((id) => {
-  menuTrigger?.(id)
-})
-void listenForDeepLinks()
+if (tauri()) {
+  void createMenu((id) => {
+    menuTrigger?.(id)
+  })
+  void listenForDeepLinks()
+}
 
 render(() => {
+  if (!tauri()) {
+    return (
+      <div class="h-screen w-screen flex flex-col items-center justify-center bg-background-base text-foreground">
+        <Splash class="w-16 h-20 opacity-50" />
+        <div class="mt-4 text-sm opacity-70">请在桌面应用窗口中打开（Tauri WebView）</div>
+        <a class="mt-2 text-sm underline opacity-70" href="https://github.com/opencode-ai/opencode">
+          https://github.com/opencode-ai/opencode
+        </a>
+      </div>
+    )
+  }
+
   const platform = createPlatform()
 
   const [defaultServer] = createResource(() =>
