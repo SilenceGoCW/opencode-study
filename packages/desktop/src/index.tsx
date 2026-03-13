@@ -17,6 +17,7 @@ import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link"
 import { open, save } from "@tauri-apps/plugin-dialog"
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http"
 import { isPermissionGranted, requestPermission } from "@tauri-apps/plugin-notification"
+import { type as ostype } from "@tauri-apps/plugin-os"
 import { relaunch } from "@tauri-apps/plugin-process"
 import { open as shellOpen } from "@tauri-apps/plugin-shell"
 import { Store } from "@tauri-apps/plugin-store"
@@ -375,8 +376,9 @@ const createPlatform = (): Platform => {
 
     getDefaultServerUrl: async () => {
       if (!tauri) return null
-      const result = await commands.getDefaultServerUrl().catch(() => null)
-      return result
+      const url = await commands.getDefaultServerUrl().catch(() => null)
+      if (!url) return null
+      return ServerConnection.Key.make(url)
     },
 
     setDefaultServerUrl: async (url: string | null) => {
@@ -439,11 +441,32 @@ void listenForDeepLinks().catch(() => undefined)
 render(() => {
   const platform = createPlatform()
 
+  // Fetch sidecar credentials from Rust (available immediately, before health check)
+  const [sidecar] = createResource(() => commands.awaitInitialization(new Channel<InitStep>() as any))
+
   const [defaultServer] = createResource(() =>
-    platform.getDefaultServerUrl?.().then((url) => {
+    platform.getDefaultServer?.().then((url) => {
       if (url) return ServerConnection.key({ type: "http", http: { url } })
     }),
   )
+
+  // Build the sidecar server connection once credentials arrive
+  const servers = () => {
+    const data = sidecar()
+    if (!data) return []
+    const http = {
+      url: data.url,
+      username: data.username ?? undefined,
+      password: data.password ?? undefined,
+    }
+    const server: ServerConnection.Sidecar = {
+      displayName: t("desktop.server.local"),
+      type: "sidecar",
+      variant: "base",
+      http,
+    }
+    return [server] as ServerConnection.Any[]
+  }
 
   function handleClick(e: MouseEvent) {
     const link = (e.target as HTMLElement).closest("a.external-link") as HTMLAnchorElement | null
@@ -451,6 +474,12 @@ render(() => {
       e.preventDefault()
       platform.openLink(link.href)
     }
+  }
+
+  function Inner() {
+    const cmd = useCommand()
+    menuTrigger = (id) => cmd.trigger(id)
+    return null
   }
 
   onMount(() => {
@@ -463,39 +492,18 @@ render(() => {
   return (
     <PlatformProvider value={platform}>
       <AppBaseProviders>
-        <ServerGate>
-          {(data) => {
-            const http = {
-              url: data.url,
-              username: data.username ?? undefined,
-              password: data.password ?? undefined,
-            }
-            const server: ServerConnection.Any = data.is_sidecar
-              ? {
-                  displayName: t("desktop.server.local"),
-                  type: "sidecar",
-                  variant: "base",
-                  http,
-                }
-              : { type: "http", http }
-
-            function Inner() {
-              const cmd = useCommand()
-
-              menuTrigger = (id) => cmd.trigger(id)
-
-              return null
-            }
-
+        <Show when={!defaultServer.loading && !sidecar.loading}>
+          {(_) => {
             return (
-              <Show when={!defaultServer.loading}>
-                <AppInterface defaultServer={defaultServer.latest ?? ServerConnection.key(server)} servers={[server]}>
-                  <Inner />
-                </AppInterface>
-              </Show>
+              <AppInterface
+                defaultServer={defaultServer.latest ?? ServerConnection.Key.make("sidecar")}
+                servers={servers()}
+              >
+                <Inner />
+              </AppInterface>
             )
           }}
-        </ServerGate>
+        </Show>
       </AppBaseProviders>
     </PlatformProvider>
   )
