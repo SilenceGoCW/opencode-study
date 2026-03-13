@@ -374,14 +374,14 @@ const createPlatform = (): Platform => {
       await commands.setWslConfig({ enabled })
     },
 
-    getDefaultServerUrl: async () => {
+    getDefaultServer: async () => {
       if (!tauri) return null
       const url = await commands.getDefaultServerUrl().catch(() => null)
       if (!url) return null
       return ServerConnection.Key.make(url)
     },
 
-    setDefaultServerUrl: async (url: string | null) => {
+    setDefaultServer: async (url: string | null) => {
       if (!tauri) return
       await commands.setDefaultServerUrl(url)
     },
