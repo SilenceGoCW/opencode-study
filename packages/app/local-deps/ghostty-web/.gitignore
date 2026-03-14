@@ -2,6 +2,3 @@ node_modules/
 .DS_Store
 *.log
 .vite/
-
-# WASM build output (built locally and in CI)
-ghostty-vt.wasm
