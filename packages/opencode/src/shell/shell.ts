@@ -43,6 +43,11 @@ export namespace Shell {
 
   function fallback() {
     if (process.platform === "win32") {
+      // Use PowerShell by default on Windows to avoid Git Bash console limit issues
+      const ps = which("powershell")
+      if (ps) return ps
+      const pwsh = which("pwsh")
+      if (pwsh) return pwsh
       if (Flag.OPENCODE_GIT_BASH_PATH) return Flag.OPENCODE_GIT_BASH_PATH
       const git = which("git")
       if (git) {
