@@ -10,6 +10,8 @@ node_modules
 playground
 tmp
 dist
+!packages/app/local-deps/ghostty-web/dist/
+!packages/app/local-deps/ghostty-web/dist/**
 ts-dist
 .turbo
 **/.serena
