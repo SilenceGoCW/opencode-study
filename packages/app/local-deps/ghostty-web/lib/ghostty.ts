@@ -85,6 +85,18 @@ export class Ghostty {
     // Also try other common paths
     defaultPaths.push(moduleUrl.href, './ghostty-vt.wasm', '/ghostty-vt.wasm');
 
+    // Try Tauri-specific path
+    try {
+      // Check if we're in a Tauri environment
+      if (typeof window !== 'undefined' && (window as any).__TAURI__) {
+        // In Tauri, the WASM file should be in the same directory as the JS files
+        const tauriPath = './ghostty-vt.wasm';
+        return await Ghostty.loadFromPath(tauriPath);
+      }
+    } catch (e) {
+      // Ignore Tauri-specific errors and continue with other paths
+    }
+
     let lastError: Error | null = null;
     for (const path of defaultPaths) {
       try {
@@ -93,7 +105,13 @@ export class Ghostty {
         lastError = e instanceof Error ? e : new Error(String(e));
       }
     }
-    throw lastError || new Error('Failed to load Ghostty WASM');
+    
+    // Provide a more detailed error message
+    const errorMessage = `Failed to load Ghostty WASM. Please ensure the ghostty-vt.wasm file is present in the correct directory.\n` +
+      `If you're building the project, make sure to run the WASM build script first:\n` +
+      `  cd packages/app/local-deps/ghostty-web && bun run build:wasm`;
+    
+    throw lastError || new Error(errorMessage);
   }
 
   private static async loadFromPath(path: string): Promise<Ghostty> {
@@ -136,6 +154,12 @@ export class Ghostty {
 
     if (!wasmBytes) {
       throw new Error(`Could not load WASM from path: ${path}`);
+    }
+
+    // Check if the bytes are valid WASM (starts with magic number 0x00 0x61 0x73 0x6d)
+    const uint8View = new Uint8Array(wasmBytes);
+    if (uint8View.length < 4 || uint8View[0] !== 0x00 || uint8View[1] !== 0x61 || uint8View[2] !== 0x73 || uint8View[3] !== 0x6d) {
+      throw new Error(`Invalid WASM file: missing magic number. Check path: ${path}`);
     }
 
     const wasmModule = await WebAssembly.compile(wasmBytes);
