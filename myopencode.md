@@ -169,7 +169,6 @@ x86_64-pc-windows-msvc
 
 #### 基于工程目录启动服务
 
-.env 文件中的CONFIG_FILE_ENV设置为1，离线使用。之后运行下述指令启动服务
 
 ```bash
 node start.js
@@ -184,7 +183,7 @@ npm set registry http://127.0.0.1:4873
 npm get registry
 ```
 
-#### 安装插件Verdaccio
+#### 安装插件Verdaccio，如果失败了也无所谓，不要在意
 
 ```bash
 npm install @jayxuz/verdaccio-offline-storage
@@ -198,12 +197,12 @@ npm install verdaccio-metadata-healer
 
 ```
 
-# 1. 先在Verdaccio工程中，通过node start.js 启动Verdaccio服务，安装pm2之后关闭服务再通过pm2启动。
+
 # 全局安装 pm2
 
 npm install -g pm2@6.0.14 --registry=http://127.0.0.1:4873
 
-# 安装之后关闭node 启动的Verdaccio服务后通过pm2启动。
+# 安装之后关闭node，关闭Verdaccio服务后通过pm2启动。
 ```
 
 #### 启动 Verdaccio
@@ -261,45 +260,21 @@ pm2 delete erdaccio-start # 删除目标进程
 pm2 save  # 更新进程列表
 ```
 
-## **使用Verdaccio缓存依赖**
-
-1. 启动Verdaccio的服务，通过js文件
-
-2. bun 安装时指定本地Verdaccio服务,临时生效
-
-   ```bash
-   $env:BUN_CONFIG_REGISTRY = "http://localhost:4873"
-
-
-   bun install
-   ```
-
-   永久设置，powershell
-
-   ```bash
-   # 需要管理员权限,设置后重启终端
-   [Environment]::SetEnvironmentVariable("BUN_CONFIG_REGISTRY", "http://localhost:4873", "Machine")
-   ```
 
 # 2.opencode源码编译
 
 _注意：编译源码时，一定要存在git，否则不通过_
 
-1. 要在shell中设置本地node服务地址，或者设置环境变量
 
-   ```shell
-   $env:BUN_CONFIG_REGISTRY = "http://localhost:4873"
-   ```
-
-2. 设置之后安装依赖
+1. 安装依赖
 
    ```sheel
    bun install
    ```
 
-3. 依据CONTRIBUTING.md 文档进行dev的各版本环境测试
+2. 依据CONTRIBUTING.md 文档进行dev的各版本环境测试
 
-4. opencode.dev.json 配置文件
+3. opencode.dev.json 配置文件
    - baseline为false时，编译desktop应用，不编译base版本，true时编译base版
 
 # **常用技巧**
