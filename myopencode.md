@@ -1,76 +1,53 @@
- # **opencode开发规范**
+# **opencode开发规范**
 
 中文文档地址：[https://opencode.ai/docs](https://opencode.ai/docs)
 
 ## **opencode技术栈**
 
 - TypeScript
-  
 - Bun： 快速、一体化的 JavaScript/TypeScript 运行时与工具链，可直接替代 Node.js。
-  
 - SolidJS：无虚拟 DOM的前端框架
-  
 - Tauri ：包构建工具
-  
 
 ## **开发环境**
 
 - Bun
-  
 - 大模型:Ollama或者Vllm
-  
 
 ## 基于opencode开发智能体
 
 ### 1. 基于用户问题的仿真简易流程实现与测试
 
 - 主 Agent（Primary Agent）：负责整体协调，接收用户输入，分解任务，调用子 agents/tools。
-  
 - 子 Agents（Subagents）：每个对应一个流程步骤
-  
-    - 构建想定场景（基于用户输入生成场景描述、参数）
-      
-    - 仿真执行（调用仿真引擎，执行仿真）
-      
+  - 构建想定场景（基于用户输入生成场景描述、参数）
+  - 仿真执行（调用仿真引擎，执行仿真）
 
 #### 实现步骤
 
 用 opencode agent create 命令交互式创建 agents，全局保存（~/.config/opencode/agents/）
 
 1. 创建主 Agent
-   
 
 opencode agent create
 
 - 保存位置：全局。
-  
 - 描述："作为一个仿真协调专家，基于用户问题自主处理仿真流程：解析输入、构建场景、执行仿真。"
-  
 - 系统提示词（自动生成后可编辑）：强调多步思考、调用子 agents（如 @scenario-builder、@sim-developer、@analyzer）。
-  
 - 工具权限：启用 bash（运行仿真引擎命令）、自定义tool。
-  
 - 生成文件：~/.config/opencode/agents/ly-coordinator.md（可手动编辑 YAML 部分添加 tools: { ly-tool: true }）。
-  
 
 2. 创建子 Agents
-   
 
 - @scenario-builder（构建想定场景）： 描述："从用户输入提取关键元素，生成场景参数（如平台、环境、任务）。" 工具：只读工具如 read。
-  
 - @sim-runner（开发仿真）： 描述："通过工具执行仿真。" 工具：simulation-runner。
-  
 
 3. 创建自定义 Tools/Skills
-   
 
 - 在项目目录创建 .opencode/skills/afsim-tool/ 文件夹。
-  
 - 想定格式校验工具、仿真引擎执行工具等
-  
 
 4. 配置工作流 在主 agent 的提示词中添加规则：用 @subagent 调用子 agents，用工具链处理仿真。示例 prompt 片段：
-   
 
 步骤1: 解析用户输入，调用 @scenario-builder 生成场景JSON。  
 步骤2: 用场景调用 @scenario-valid 校验格式。  
@@ -83,148 +60,58 @@ opencode agent create
 ## 项目结构
 
 ```text
-ly-agent/                      ← 项目根目录（git init 这里）  
-├── .opencode/                          ← 所有 OpenCode 相关配置和代码都在这里（OpenWork 风格）  
-│   ├── agent/                         ← 所有 Agent 定义（.md 或 .json）  
-│   │   ├── primary.md                  ← 主 Agent（面向客户的业务助手）  
-│   │   ├── memory-manager.md           ← 记忆专用子 Agent  
-│   │   ├── db-operator.md              ← 数据库操作专用子 Agent  
-│   │   └── reviewer.md                 ← 代码/输出审查 Agent（可选）  
-│   ├── tools/                          ← 所有自定义工具（.ts / .js）  
-│   │   ├── core/                       ← 基础工具（权限、日志等）  
-│   │   │   ├── permission-check.ts  
-│   │   │   └── log-action.ts  
-│   │   ├── db/                         ← 数据库相关工具  
-│   │   │   ├── query.ts  
-│   │   │   ├── insert.ts  
-│   │   │   └── update.ts  
-│   │   ├── memory/                     ← 长期/短期记忆工具  
-│   │   │   ├── save-long-term.ts  
-│   │   │   ├── recall-long-term.ts  
-│   │   │   └── save-session-note.ts    ← 短期会话笔记  
-│   │   └── business/                   ← 你的具体业务工具  
-│   │       ├── check-order.ts  
-│   │       └── generate-report.ts  
-│   ├── plugins/                        ← 如果需要复杂插件（可选，先空着）  
-│   └── opencode.json                   ← 项目全局配置（模型、默认 Agent、权限白名单）  
-├── data/                               ← 持久化数据（不放 .opencode/ 里，避免污染配置）  
-│   ├── sqlite/                         ← 本地数据库文件  
-│   │   └── business.db  
-│   ├── vectors/                        ← 向量数据库文件（hnswlib/chroma 等）  
-│   └── memories/                       ← 纯文件式记忆备份（json/md）  
-├── src/                                ← 工具中 import 的辅助代码（非 OpenCode 加载）  
-│   ├── db/                             ← 数据库连接、schema  
-│   │   └── index.ts  
-│   ├── embeddings/                     ← 如果用本地 embedding 模型  
-│   └── utils/                          ← 通用工具函数（日期、格式化等）  
-├── .env                                ← 敏感配置（DB 连接字符串、API key 等）  
-├── .gitignore  
-├── package.json                        ← 依赖（drizzle-orm、@opencode-ai/plugin 等）  
-├── bun.lockb                           ← 或 pnpm-lock.yaml / yarn.lock  
-├── README.md                           ← 项目说明、启动方式、Agent 列表  
-└── docker-compose.yml                  ← 可选，用于生产测试  
+ly-agent/                      ← 项目根目录（git init 这里）
+├── .opencode/                          ← 所有 OpenCode 相关配置和代码都在这里（OpenWork 风格）
+│   ├── agent/                         ← 所有 Agent 定义（.md 或 .json）
+│   │   ├── primary.md                  ← 主 Agent（面向客户的业务助手）
+│   │   ├── memory-manager.md           ← 记忆专用子 Agent
+│   │   ├── db-operator.md              ← 数据库操作专用子 Agent
+│   │   └── reviewer.md                 ← 代码/输出审查 Agent（可选）
+│   ├── tools/                          ← 所有自定义工具（.ts / .js）
+│   │   ├── core/                       ← 基础工具（权限、日志等）
+│   │   │   ├── permission-check.ts
+│   │   │   └── log-action.ts
+│   │   ├── db/                         ← 数据库相关工具
+│   │   │   ├── query.ts
+│   │   │   ├── insert.ts
+│   │   │   └── update.ts
+│   │   ├── memory/                     ← 长期/短期记忆工具
+│   │   │   ├── save-long-term.ts
+│   │   │   ├── recall-long-term.ts
+│   │   │   └── save-session-note.ts    ← 短期会话笔记
+│   │   └── business/                   ← 你的具体业务工具
+│   │       ├── check-order.ts
+│   │       └── generate-report.ts
+│   ├── plugins/                        ← 如果需要复杂插件（可选，先空着）
+│   └── opencode.json                   ← 项目全局配置（模型、默认 Agent、权限白名单）
+├── data/                               ← 持久化数据（不放 .opencode/ 里，避免污染配置）
+│   ├── sqlite/                         ← 本地数据库文件
+│   │   └── business.db
+│   ├── vectors/                        ← 向量数据库文件（hnswlib/chroma 等）
+│   └── memories/                       ← 纯文件式记忆备份（json/md）
+├── src/                                ← 工具中 import 的辅助代码（非 OpenCode 加载）
+│   ├── db/                             ← 数据库连接、schema
+│   │   └── index.ts
+│   ├── embeddings/                     ← 如果用本地 embedding 模型
+│   └── utils/                          ← 通用工具函数（日期、格式化等）
+├── .env                                ← 敏感配置（DB 连接字符串、API key 等）
+├── .gitignore
+├── package.json                        ← 依赖（drizzle-orm、@opencode-ai/plugin 等）
+├── bun.lockb                           ← 或 pnpm-lock.yaml / yarn.lock
+├── README.md                           ← 项目说明、启动方式、Agent 列表
+└── docker-compose.yml                  ← 可选，用于生产测试
 ```
-
 
 ## 基于opencode的开源项目
 
-- 官网 
-
-|名称|描述|
-|---|---|
-|opencode-daytona|在隔离的 Daytona 沙箱中自动运行 OpenCode 会话，支持 git 同步和实时预览|
-|opencode-helicone-session|自动注入 Helicone 会话头信息，用于请求分组|
-|opencode-type-inject|通过查找工具自动将 TypeScript/Svelte 类型注入到文件读取中|
-|opencode-openai-codex-auth|使用您的 ChatGPT Plus/Pro 订阅替代 API 额度|
-|opencode-gemini-auth|使用您现有的 Gemini 套餐替代 API 计费|
-|opencode-antigravity-auth|使用 Antigravity 的免费模型替代 API 计费|
-|opencode-devcontainers|多分支开发容器隔离，支持浅克隆和自动分配端口|
-|opencode-google-antigravity-auth|Google Antigravity OAuth 插件，支持 Google 搜索及更强健的 API 处理|
-|opencode-dynamic-context-pruning|通过修剪过时的工具输出来优化 Token 使用|
-|opencode-vibeguard|在调用 LLM 之前将机密/PII 替换为 VibeGuard 风格的占位符；并在本地恢复|
-|opencode-websearch-cited|为受支持的提供商添加原生网页搜索支持，采用 Google grounded 风格|
-|opencode-pty|使 AI 代理能够在 PTY 中运行后台进程，并向其发送交互式输入|
-|opencode-shell-strategy|非交互式 shell 命令指令——防止依赖 TTY 的操作导致挂起|
-|opencode-wakatime|使用 Wakatime 追踪 OpenCode 的使用情况|
-|opencode-md-table-formatter|清理 LLM 生成的 Markdown 表格|
-|opencode-morph-fast-apply|通过 Morph Fast Apply API 和惰性编辑标记实现 10 倍更快的代码编辑|
-|oh-my-opencode|后台代理、预构建的 LSP/AST/MCP 工具、精选代理，兼容 Claude Code|
-|opencode-notificator|OpenCode 会话的桌面通知和声音提醒|
-|opencode-notifier|针对权限请求、任务完成和错误事件的桌面通知与声音提醒|
-|opencode-zellij-namer|基于 OpenCode 上下文的 AI 驱动自动 Zellij 会话命名|
-|opencode-skillful|允许 OpenCode 代理通过技能发现和注入按需延迟加载提示词|
-|opencode-supermemory|使用 Supermemory 实现跨会话的持久记忆|
-|@plannotator/opencode|支持可视化标注和私有/离线分享的交互式计划审查|
-|@openspoon/subtask2|将 OpenCode /commands 扩展为具有精细流程控制的强大编排系统|
-|opencode-scheduler|使用 cron 语法通过 launchd (Mac) 或 systemd (Linux) 调度周期性任务|
-|micode|结构化的头脑风暴 → 计划 → 实现工作流，支持会话连续性|
-|octto|用于 AI 头脑风暴的交互式浏览器 UI，支持多问题表单|
-|opencode-background-agents|Claude Code 风格的后台代理，支持异步委托和上下文持久化|
-|opencode-notify|OpenCode 的原生操作系统通知——随时了解任务完成情况|
-|opencode-workspace|捆绑式多代理编排套件——16 个组件，一次安装|
-|opencode-worktree|OpenCode 的零摩擦 git worktree 管理|
-|opencode-sentry-monitor|使用 Sentry AI Monitoring 追踪和调试您的 AI 代理|
-
 - web项目
-  
-    - openchamber
-      
-    - opencode-web
-      
-    - 等
-      
-
-## Eigent情况
-
-Eigent 是全球首个 多智能体工作流 桌面应用程序，帮助您构建、管理和部署定制化的 AI 工作团队，将最复杂的工作流程转化为自动化任务。作为领先的开源 Cowork产品，Eigent融合了开源 Cowork 和AI驱动自动化的优势。
-
-![[432657e80319f17ff603be10d1178c46.png]]
-
-### 技术栈
-
-**后端**
-
-- 框架： FastAPI
-  
-- 包管理器： uv
-  
-- 异步服务器： Uvicorn
-  
-- 认证： OAuth 2.0, Passlib
-  
-- 多智能体框架： CAMEL
-  
-
-**前端**
-
-- 框架： React
-  
-- 桌面应用框架： Electron
-  
-- 语言： TypeScript
-  
-- UI： Tailwind CSS, Radix UI, Lucide React, Framer Motion
-  
-- 状态管理： Zustand
-  
-- 流程编辑器： React Flow
-  
-
-✨ 核心功能 - 开源 Cowork 通过 Eigent 开源 Cowork的强大功能释放卓越生产力的全部潜力——专为无缝集成、智能任务执行和无边界自动化而设计。
-
-🏭 工作流 部署一支专业 AI 智能体团队，协作解决复杂任务。Eigent 开源 Cowork动态分解任务并激活多个智能体 并行工作。
-
-Eigent 预定义了以下智能体工作者：
-
-- 开发智能体：编写和执行代码，运行终端命令。
-  
-- 搜索智能体：搜索网络并提取内容。
-  
-- 文档智能体：创建和管理文档。
-  
-- 多模态智能体：处理图像和音频。
+  - openchamber
+  - opencode-web
+  - 等
 
 # **Windows编译**
+
+**后续的安装步骤涉及到shell的最好都以管理员身份启动**
 
 ## 1.构建本地开发环境
 
@@ -243,13 +130,13 @@ cargo --version
 
 - 安装MSVC
 
-```bash
-# 以管理员身份在离线包中执行以下命令， 默认安装即可
-  .\vs_BuildTools.exe --noweb `
-    --add Microsoft.VisualStudio.Workload.VCTools `
-    --includeRecommended
-```
+1. 管理员身份启动powershell，cd到离线包根目录，_建议安装vs-offline-w11.7z包，不行在使用vs-offline-win10.7z_
+2. 双击安装certificates中的所有证书，确保 **Microsoft Windows Code Signing PCA 2024.crt**证书一定要安装。
+3. 安装之后执行命令，进行安装
 
+```bash
+.\vs_BuildTools.exe --noweb --installPath "C:\cw\vs-install" --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --wait
+```
 
 ### 安装NSIS
 
@@ -274,14 +161,11 @@ bun --version
 在系统变量或者用户变量设置添加环境变量
 
 ```bash
-RUST_TARGET 
+RUST_TARGET
 x86_64-pc-windows-msvc
 ```
 
 # **搭建Node私有仓库,使用Verdaccio**
-
-
-
 
 #### 基于工程目录启动服务
 
@@ -291,7 +175,7 @@ x86_64-pc-windows-msvc
 node start.js
 ```
 
-####  设置npm源为
+#### 设置npm源为
 
 ```bash
 npm set registry http://127.0.0.1:4873
@@ -321,8 +205,6 @@ npm install -g pm2@6.0.14 --registry=http://127.0.0.1:4873
 
 # 安装之后关闭node 启动的Verdaccio服务后通过pm2启动。
 ```
-
-
 
 #### 启动 Verdaccio
 
@@ -356,7 +238,7 @@ ppm2 delete verdaccio-start
 
 # 1. 生成并启用开机自启：
 pm2 startup
-# 2.按照示pm2的输出，直接复制指令执行 
+# 2.按照示pm2的输出，直接复制指令执行
 --- 示例输出
 [PM2] Init System found: systemd
 [PM2] To setup the Startup Script, copy/paste the following command:
@@ -387,8 +269,8 @@ pm2 save  # 更新进程列表
 
    ```bash
    $env:BUN_CONFIG_REGISTRY = "http://localhost:4873"
-   
-   
+
+
    bun install
    ```
 
@@ -401,7 +283,7 @@ pm2 save  # 更新进程列表
 
 # 2.opencode源码编译
 
-*注意：编译源码时，一定要存在git，否则不通过*
+_注意：编译源码时，一定要存在git，否则不通过_
 
 1. 要在shell中设置本地node服务地址，或者设置环境变量
 
@@ -418,7 +300,6 @@ pm2 save  # 更新进程列表
 3. 依据CONTRIBUTING.md 文档进行dev的各版本环境测试
 
 4. opencode.dev.json 配置文件
-
    - baseline为false时，编译desktop应用，不编译base版本，true时编译base版
 
 # **常用技巧**
@@ -437,21 +318,21 @@ $missingPackages = @()
 # 遍历目标目录下的所有子目录（对应不同的包）
 Get-ChildItem -Path $targetDir -Directory -Recurse | ForEach-Object {
     $packageDir = $_.FullName
-    
+
     # 检查当前目录是否包含 package.json 文件
     $packageJsonPath = Join-Path -Path $packageDir -ChildPath "package.json"
     if (Test-Path -Path $packageJsonPath -PathType Leaf) {
-        
+
         # 检查是否存在实际的包文件（.tgz 或解压后的包目录）
         # 排除 package.json 本身，查找其他文件/目录（verdaccio 存储的包通常是 .tgz 或版本目录）
         $hasPackageFiles = $false
-        
+
         # 查找 .tgz 压缩包（最常见的包文件格式）
         $tgzFiles = Get-ChildItem -Path $packageDir -Filter "*.tgz" -File
         if ($tgzFiles.Count -gt 0) {
             $hasPackageFiles = $true
         }
-        
+
         # 若没有 .tgz，检查是否有版本号命名的目录（如 1.0.0）
         if (-not $hasPackageFiles) {
             $versionDirs = Get-ChildItem -Path $packageDir -Directory | Where-Object {
@@ -462,7 +343,7 @@ Get-ChildItem -Path $targetDir -Directory -Recurse | ForEach-Object {
                 $hasPackageFiles = $true
             }
         }
-        
+
         # 若既没有 .tgz 也没有版本目录，说明只有 package.json
         if (-not $hasPackageFiles) {
             $missingPackages += $packageDir
@@ -484,8 +365,8 @@ if ($missingPackages.Count -gt 0) {
 ## vscode 刷新终端获取环境变量
 
 ```bash
-# 刷新环境变量（立即生效） 
-$env:Path =[System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +[System.Environment]::GetEnvironmentVariable("Path","User") # 验证 
+# 刷新环境变量（立即生效）
+$env:Path =[System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +[System.Environment]::GetEnvironmentVariable("Path","User") # 验证
 bun --version
 ```
 
@@ -510,9 +391,9 @@ bun --version
 taskkill /F /IM bun.exe 2>NUL
 ```
 
-## 错误 bun install 
+## 错误 bun install
 
- �🔍 @azure/msal-browser... ENOENT: No such file or directory: failed to link package: @azure/msal-browser@4.29.0 (copyfile)
+�🔍 @azure/msal-browser... ENOENT: No such file or directory: failed to link package: @azure/msal-browser@4.29.0 (copyfile)
 
 ### 解决
 
