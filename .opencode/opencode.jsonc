@@ -4,6 +4,21 @@
     "opencode": {
       "options": {},
     },
+    // 本地 Ollama 模型（需先启动 ollama serve）
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434",
+      },
+      "models": {
+        // 在此添加已通过 ollama pull 下载的模型
+        // 模型 ID 需与 ollama list 中的名称一致
+        "qwen3:8b": {
+          "name": "Qwen3 8B",
+        }
+      },
+    },
   },
   "permission": {
     "edit": {
