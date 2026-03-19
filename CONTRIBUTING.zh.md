@@ -12,6 +12,28 @@ http://localhost:4321/docs/zh-cn/
 
 ```
 
+# 在web开发模式下，如何让配置文件生效
+
+1. 自定义路径
+使用 OPENCODE_CONFIG 环境变量指定自定义配置文件路径。
+
+```bash
+$env:OPENCODE_CONFIG = "D:\cw\opencode\opencode\.opencode\opencode.jsonc";bun dev serve
+
+```
+
+自定义配置在优先级顺序中位于全局配置和项目配置之间加载。
+
+2. 自定义目录
+使用 OPENCODE_CONFIG_DIR 环境变量指定自定义配置目录。该目录会像标准 .opencode 目录一样被搜索代理、命令、模式和插件，并且应遵循相同的结构。
+
+```bash
+$env:OPENCODE_CONFIG_DIR = "D:\cw\opencode\opencode\.opencode";bun dev serve
+
+```
+
+自定义目录在全局配置和 .opencode 目录之后加载，因此可以覆盖它们的设置。
+
 # 为 OpenCode 贡献代码
 
 我们希望你能轻松地为 OpenCode 做出贡献。以下是最常被合并的改动类型：

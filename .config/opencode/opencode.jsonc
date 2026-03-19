@@ -1,0 +1,55 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "opencode": {
+      "options": {},
+    },
+    // 本地 Ollama 模型（需先启动 ollama serve）
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1",
+      },
+      "models": {
+        // 在此添加已通过 ollama pull 下载的模型
+        // 模型 ID 需与 ollama list 中的名称一致
+        "qwen3:8b": {
+          "name": "Qwen3 8B",
+        }
+      },
+    },
+    // 公司内网 DeepSeek 满血大模型（基于 OpenAI 协议，需附加 user_id 参数）
+    "company-deepseek": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "公司 DeepSeek",
+      "options": {
+        "baseURL": "http://your-company-api-host/v1", // 替换为公司实际地址
+        "apiKey": "{env:COMPANY_API_KEY}",           // 从环境变量读取，或直接填写密钥
+      },
+      "models": {
+        "deepseek-v3": {                              // 替换为公司实际模型 ID
+          "name": "DeepSeek V3 (满血)",
+          "options": {
+            // 未被 openai-compatible 识别的字段会被直接透传到请求 body
+            "user_id": "your-id-number"               // 替换为你的身份证号
+          },
+          "limit": {
+            "context": 65536, // 模型最大输入 token 数（上下文窗口大小）
+            "output": 8192   // 模型单次最大输出 token 数
+          }
+        }
+      },
+    },
+  },
+  "permission": {
+    "edit": {
+      "packages/opencode/migration/*": "deny",
+    },
+  },
+  "mcp": {},
+  "tools": {
+    "github-triage": false,
+    "github-pr-search": false,
+  },
+}
