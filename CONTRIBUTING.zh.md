@@ -1,3 +1,17 @@
+# 查看opencode中文文档
+
+在根目录执行指令
+```bash
+bun dev:docs
+```
+
+之后输入网址进行访问
+
+```bash
+http://localhost:4321/docs/zh-cn/
+
+```
+
 # 为 OpenCode 贡献代码
 
 我们希望你能轻松地为 OpenCode 做出贡献。以下是最常被合并的改动类型：
