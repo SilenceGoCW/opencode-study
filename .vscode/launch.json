@@ -5,13 +5,13 @@
       "type": "bun",
       "request": "attach",
       "name": "Attach: opencode server",
-      "url": "ws://localhost:6499/"
+      "url": "ws://localhost:4096/"
     },
     {
       "type": "chrome",
       "request": "launch",
       "name": "Debug: packages/app (Chrome)",
-      "url": "http://localhost:5173",
+      "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}/packages/app/src",
       "sourceMapPathOverrides": {
         "/@fs/*": "${workspaceFolder}/*"
