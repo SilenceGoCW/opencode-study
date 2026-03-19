@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "bun",
+      "request": "attach",
+      "name": "Attach: opencode server",
+      "url": "ws://localhost:6499/"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug: packages/app (Chrome)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/packages/app/src",
+      "sourceMapPathOverrides": {
+        "/@fs/*": "${workspaceFolder}/*"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug All (Server + Frontend)",
+      "configurations": [
+        "Attach: opencode server",
+        "Debug: packages/app (Chrome)"
+      ],
+      "preLaunchTask": "start: server + frontend",
+      "stopAll": true
+    }
+  ]
+}

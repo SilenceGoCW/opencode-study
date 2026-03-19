@@ -1,0 +1,70 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "start: opencode server (inspect)",
+      "type": "shell",
+      "command": "bun",
+      "args": [
+        "run",
+        "--inspect=ws://localhost:6499/",
+        "--cwd",
+        "packages/opencode",
+        "./src/index.ts",
+        "serve",
+        "--port",
+        "4096"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*$",
+          "endsPattern": "opencode server listening on"
+        }
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "label": "opencode server"
+      }
+    },
+    {
+      "label": "start: app dev server",
+      "type": "shell",
+      "command": "bun",
+      "args": [
+        "run",
+        "--cwd",
+        "packages/app",
+        "dev"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*$",
+          "endsPattern": "Local:"
+        }
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "label": "app dev"
+      }
+    },
+    {
+      "label": "start: server + frontend",
+      "dependsOn": [
+        "start: opencode server (inspect)",
+        "start: app dev server"
+      ],
+      "dependsOrder": "parallel",
+      "group": "build"
+    }
+  ]
+}
