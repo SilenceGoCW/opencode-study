@@ -378,3 +378,12 @@ Windows 默认的路径长度限制很容易导致包安装失败，需要开启
 - 定位到路径：HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem；
 - 找到右侧的 LongPathsEnabled，双击修改值为 1（如果没有这个项，右键新建「DWORD (32 位) 值」，命名为 LongPathsEnabled，值设为 1）；
 - 重启电脑后，再重新执行 bun install。
+
+
+# 基于opencode的智能体开发
+
+## 浏览器动态显示功能
+### 1. 基于opencode-browser插件的方式
+#### 问题
+- opencode-browser需要在浏览器扩展中安装
+- 打开的是本地浏览器，能够动态的进行展示

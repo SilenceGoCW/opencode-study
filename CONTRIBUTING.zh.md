@@ -40,6 +40,13 @@ $env:OPENCODE_CONFIG_DIR = "D:\cw\opencode\opencode\.opencode";bun dev serve
 
 自定义目录在全局配置和 .opencode 目录之后加载，因此可以覆盖它们的设置。
 
+# opencode插件安装的方式
+```bash
+# 在一下目录进行安装，执行指令后会在下述目录的node_modules中
+cd d:\cw\opencode\opencode\.opencode
+
+```
+
 # 为 OpenCode 贡献代码
 
 我们希望你能轻松地为 OpenCode 做出贡献。以下是最常被合并的改动类型：
