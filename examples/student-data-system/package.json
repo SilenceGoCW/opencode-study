@@ -1,0 +1,19 @@
+{
+  "name": "student-data-system",
+  "version": "1.0.0",
+  "description": "学生数据管理系统 - 供 opencode 数据可视化测试",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "start": "bun run src/server.ts",
+    "seed": "bun run src/seed.ts"
+  },
+  "dependencies": {
+    "elysia": "^1.0.0",
+    "@elysiajs/cors": "^1.0.0",
+    "@elysiajs/static": "^1.0.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}
