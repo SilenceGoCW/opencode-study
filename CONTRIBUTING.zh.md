@@ -12,7 +12,13 @@ http://localhost:4321/docs/zh-cn/
 
 ```
 
-# 在web开发模式下，如何让配置文件生效
+# 在web开发模式下，如何让配置文件生效 建议使用第二种方法
+*运行web开发的指令*
+
+```bash
+bun run --cwd packages/app dev
+```
+
 
 1. 自定义路径
 使用 OPENCODE_CONFIG 环境变量指定自定义配置文件路径。
