@@ -42,7 +42,6 @@ permission:
    - browser_type 输入筛选条件（如有）
    - browser_click 点击「生成图表」按钮
    - 等待图表渲染完成（约1秒）
-4. **截图展示**：browser_screenshot 截图并内嵌到对话中
 
 ## 图表类型映射
 

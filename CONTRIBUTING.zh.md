@@ -1,6 +1,6 @@
 # 查看opencode中文文档
 
-在根目录执行指令
+在根目录（packages\web）执行指令
 ```bash
 bun dev:docs
 ```
@@ -13,6 +13,7 @@ http://localhost:4321/docs/zh-cn/
 ```
 
 # 在web开发模式下，如何让配置文件生效 建议使用第二种方法
+
 *运行web开发的指令*
 
 ```bash
