@@ -115,6 +115,12 @@ ly-agent/                      ← 项目根目录（git init 这里�
 
 ## 1.构建本地开发环境
 
+### 安装tauri编译软件
+
+```bash
+# 将tauri.7z 压缩包 在windows的“C:\Users\qq944\AppData\Local”解压（目录为tauri的默认缓存目录）
+```
+
 ### 安装Rust的Windows编译环境
 
 - 点击rust-1.94.0-x86_64-pc-windows-msvc.msi进行安装并将bin目录添加至环境变量
