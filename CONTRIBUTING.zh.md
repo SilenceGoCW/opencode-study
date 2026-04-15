@@ -190,7 +190,7 @@ bun run --cwd packages/desktop dev
 ```
 
 生成生产环境的 `dist/` 并构建原生应用包：
-
+*执行下述构建命令前，先执行bun run --cwd packages/desktop tauri dev，如果执行过 就不需要再执行了*
 ```bash
 bun run --cwd packages/desktop tauri build
 ```
