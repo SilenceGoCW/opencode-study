@@ -16,7 +16,10 @@
         // 模型 ID 需与 ollama list 中的名称一致
         "qwen3:8b": {
           "name": "Qwen3 8B",
-        }
+        },
+        "qwen3.5:9b": {
+          "name": "qwen3.5:9b",
+        },
       },
     },
     // 公司内网 DeepSeek 满血大模型（基于 OpenAI 协议，需附加 user_id 参数）
@@ -28,17 +31,18 @@
         "apiKey": "{env:COMPANY_API_KEY}", // 从环境变量读取，或直接填写密钥
       },
       "models": {
-        "deepseek-v3": { // 替换为公司实际模型 ID
+        "deepseek-v3": {
+          // 替换为公司实际模型 ID
           "name": "DeepSeek V3 (满血)",
           "options": {
             // 未被 openai-compatible 识别的字段会被直接透传到请求 body
-            "user_id": "your-id-number" // 替换为你的身份证号
+            "user_id": "your-id-number", // 替换为你的身份证号
           },
           "limit": {
             "context": 65536, // 模型最大输入 token 数（上下文窗口大小）
-            "output": 8192 // 模型单次最大输出 token 数
-          }
-        }
+            "output": 8192, // 模型单次最大输出 token 数
+          },
+        },
       },
     },
   },
@@ -52,8 +56,5 @@
     "github-triage": false,
     "github-pr-search": false,
   },
-  "plugin": [
-    "@different-ai/opencode-browser",
-    "opencode-dynamic-context-pruning"
-  ],
+  "plugin": ["@different-ai/opencode-browser", "opencode-dynamic-context-pruning"],
 }
